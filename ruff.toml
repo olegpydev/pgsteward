@@ -1,0 +1,43 @@
+line-length = 79
+target-version = "py311"
+
+[lint]
+select = [
+    "E",      # pycodestyle errors
+    "W",      # pycodestyle warnings
+    "F",      # pyflakes
+    "I",      # isort
+    "UP",     # pyupgrade
+    "B",      # flake8-bugbear
+    "SIM",    # flake8-simplify
+    "ASYNC",  # flake8-async
+    "S",      # flake8-bandit
+    "RUF",    # ruff-specific
+]
+ignore = [
+    # Пароли и DSN в тестах — фикстуры, не реальные секреты.
+    "S105",
+    "S106",
+    # Docstrings и комментарии на русском: кириллица не «ambiguous unicode».
+    "RUF001",
+    "RUF002",
+    "RUF003",
+]
+
+[lint.per-file-ignores]
+# assert — штатный механизм pytest; SQL фикстур собирается из констант
+# модуля, а не из пользовательского ввода.
+"tests/*" = ["S101", "S608"]
+# Интроспекционный SQL собирается из констант модуля, не из пользовательского
+# ввода; пользовательский SQL проходит через security.check_statement.
+"pgsteward/adapters/postgres.py" = ["S608"]
+# То же самое: health-checks подставляют в SQL только константы модуля.
+# Предикат видимости сессий вынесен в константу намеренно — он нетривиален
+# и должен совпадать в обоих запросах.
+"pgsteward/health.py" = ["S608"]
+# Интроспекционные assert для сужения типов в mypy (map_error не None в
+# режиме 'degraded').
+"pgsteward/extensions/federation.py" = ["S101"]
+
+[format]
+quote-style = "single"

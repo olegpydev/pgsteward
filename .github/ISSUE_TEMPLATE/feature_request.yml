@@ -1,0 +1,30 @@
+name: Feature request
+description: Suggest a capability or a change
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: What can you not do today, and what do you do instead?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Scope check
+      options:
+        - label: >-
+            This keeps pgsteward read-only-by-default and does not weaken the
+            engine-level `READ ONLY` guarantee.
+        - label: >-
+            I understand pgsteward is PostgreSQL-only by decision, and that
+            support for another engine is out of scope (see CONTRIBUTING.md).

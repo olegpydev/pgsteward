@@ -1,0 +1,78 @@
+{
+  "version": 1,
+  "entities": [
+    {
+      "id": "customer",
+      "description": "Customer. The same entity is physically stored in three databases under different primary keys. The link between them is not a real foreign key, because PostgreSQL has no cross-database constraints.",
+      "keys": [
+        {
+          "connection": "orders",
+          "schema": "public",
+          "table": "order",
+          "column": "customer_id",
+          "is_primary_key": false,
+          "note": "The table's own primary key is order_id; customer_id (bigint) references crm.customer.customer_id."
+        },
+        {
+          "connection": "crm",
+          "schema": "public",
+          "table": "customer",
+          "column": "customer_id",
+          "is_primary_key": true,
+          "note": "The canonical customer record, kept in the CRM."
+        },
+        {
+          "connection": "crm",
+          "schema": "public",
+          "table": "customer",
+          "column": "billing_account_id",
+          "is_primary_key": false,
+          "note": "bigint, nullable: not every customer has a billing account. References billing.account.account_id."
+        },
+        {
+          "connection": "billing",
+          "schema": "billing",
+          "table": "account",
+          "column": "account_id",
+          "is_primary_key": true,
+          "note": "The canonical billing account."
+        }
+      ]
+    }
+  ],
+  "joins": [
+    {
+      "entity": "customer",
+      "from": {
+        "connection": "orders",
+        "schema": "public",
+        "table": "order",
+        "column": "customer_id"
+      },
+      "to": {
+        "connection": "crm",
+        "schema": "public",
+        "table": "customer",
+        "column": "customer_id"
+      },
+      "relationship": "many-to-one"
+    },
+    {
+      "entity": "customer",
+      "from": {
+        "connection": "crm",
+        "schema": "public",
+        "table": "customer",
+        "column": "billing_account_id"
+      },
+      "to": {
+        "connection": "billing",
+        "schema": "billing",
+        "table": "account",
+        "column": "account_id"
+      },
+      "relationship": "many-to-one"
+    }
+  ],
+  "notes": "PostgreSQL cannot JOIN across databases, even on the same server. Do it in two `query` calls — collect the ids in one database, pass them to the other as a parameter (`= ANY($1)`) — or in a single `federated_lookup` call. `connection` here names a connection without its environment suffix: one map serves every environment, and an id ending in a suffix listed in PGSTEWARD_ENV_SUFFIXES finds the entry written without it, so use whichever suffixed connection you actually have."
+}

@@ -1,0 +1,77 @@
+[project]
+name = "pgsteward"
+version = "0.1.0"
+description = "MCP server for a fleet of PostgreSQL databases: the agent picks a connection by id and never sees credentials"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Oleg Pivovarov", email = "olegpydev@gmail.com" }]
+keywords = [
+    "mcp",
+    "model-context-protocol",
+    "postgresql",
+    "postgres",
+    "llm",
+    "agent",
+    "database",
+    "read-only",
+    "dba",
+    "multi-database",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: System Administrators",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Database",
+    "Topic :: Database :: Front-Ends",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Typing :: Typed",
+]
+dependencies = [
+    "asyncpg>=0.30.0",
+    "fastmcp>=2.14.5,<3",
+    "pydantic-settings>=2.12.0",
+    "python-dotenv>=1.0.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/olegpydev/pgsteward"
+Repository = "https://github.com/olegpydev/pgsteward"
+Issues = "https://github.com/olegpydev/pgsteward/issues"
+Changelog = "https://github.com/olegpydev/pgsteward/blob/main/CHANGELOG.md"
+
+[project.scripts]
+pgsteward = "pgsteward.server:main"
+
+[dependency-groups]
+dev = [
+    # asyncpg не поставляет py.typed, поэтому без стабов весь драйвер для
+    # mypy — Any, и аннотации соединений ничего бы не проверяли.
+    "asyncpg-stubs>=0.30.0",
+    "mypy>=2.3.0",
+    "pytest>=9.0.2",
+    "pytest-asyncio>=1.3.0",
+    "pytest-cov>=7.1.0",
+    "ruff>=0.15.2",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+# Integration-тесты создают и удаляют схемы и роли на сервере из
+# PGSTEWARD_TEST_DSN. Выбирать их надо явно (`-m integration`), иначе
+# экспортированная в шелле переменная превращает голый `pytest` в
+# запуск DROP SCHEMA по той базе, которая под рукой.
+addopts = "-m 'not integration'"
+markers = [
+    "integration: requires a live PostgreSQL (PGSTEWARD_TEST_DSN); skipped otherwise",
+]
