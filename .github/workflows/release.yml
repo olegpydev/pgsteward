@@ -2,17 +2,38 @@ name: Release
 
 on:
   push:
-    tags: ['v*']
+    # Шаблон, а не 'v*': черновой или опечатанный тег не должен вообще
+    # доводить дело до джобы с правом публикации. Кавычки обязательны,
+    # иначе YAML прочтёт скобки как flow-последовательность.
+    tags: ['v[0-9]+.[0-9]+.[0-9]+']
+
+permissions:
+  contents: read
 
 jobs:
+  checks:
+    uses: ./.github/workflows/checks.yml
+
   build:
     name: build distribution
     runs-on: ubuntu-latest
+    needs: [checks]
     steps:
       - uses: actions/checkout@v4
 
       - name: Install uv
         uses: astral-sh/setup-uv@v5
+
+      # uv build собирает версию из pyproject.toml и про тег ничего не
+      # знает. Без этой сверки тег v0.2.0 при version = "0.1.0" молча
+      # опубликовал бы 0.1.0, а номер на PyPI не переиспользуется.
+      - name: Check tag matches package version
+        run: |
+          version="$(uv version --short)"
+          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::tag $GITHUB_REF_NAME != pyproject version $version"
+            exit 1
+          fi
 
       - name: Build sdist and wheel
         run: uv build
